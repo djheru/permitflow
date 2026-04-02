@@ -2,7 +2,7 @@ import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 import type { APIGatewayProxyResultV2 } from 'aws-lambda';
 import type { Logger } from '@aws-lambda-powertools/logger';
 import { config } from '../../config';
-import type { LoanProgressItem } from '../../types';
+import type { PermitProgressItem } from '../../types';
 
 export const handleStatus = async (
   applicationId: string,
@@ -25,7 +25,7 @@ export const handleStatus = async (
     };
   }
 
-  const item = result.Item as LoanProgressItem;
+  const item = result.Item as PermitProgressItem;
 
   return {
     statusCode: 200,

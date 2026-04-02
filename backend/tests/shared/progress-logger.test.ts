@@ -34,10 +34,10 @@ describe('createProgressLogger', () => {
     ddbMock.on(UpdateCommand).resolves({});
 
     const logger = createProgressLogger('APP-123');
-    await logger.updateStep('credit_check', 'processing');
+    await logger.updateStep('agency_review', 'processing');
 
     const call = ddbMock.commandCalls(UpdateCommand)[0];
-    expect(call.args[0].input.ExpressionAttributeValues?.[':step']).toBe('credit_check');
+    expect(call.args[0].input.ExpressionAttributeValues?.[':step']).toBe('agency_review');
     expect(call.args[0].input.ExpressionAttributeValues?.[':status']).toBe('processing');
   });
 
