@@ -1,0 +1,15 @@
+node_modules/
+dist/
+cdk.out/
+*.js
+*.d.ts
+*.js.map
+!jest.config.ts
+!vite.config.ts
+!vite-env.d.ts
+!eslint.config.js
+.env
+.env.local
+coverage/
+.cdk.staging/
+.superpowers/

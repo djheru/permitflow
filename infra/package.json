@@ -1,0 +1,21 @@
+{
+  "name": "@durable-lambda/infra",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint lib/",
+    "type-check": "tsc --noEmit",
+    "cdk": "cdk"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.237.1",
+    "constructs": "^10.0.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.0.0",
+    "aws-cdk": "^2.237.1"
+  }
+}

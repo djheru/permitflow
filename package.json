@@ -1,0 +1,18 @@
+{
+  "name": "permitflow",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "infra"
+  ],
+  "scripts": {
+    "build": "npm -w backend run build && npm -w frontend run build && npm -w infra run build",
+    "test": "npm -w backend run test",
+    "lint": "npm -w backend run lint && npm -w infra run lint",
+    "type-check": "npm -w backend run type-check && npm -w frontend run type-check && npm -w infra run type-check"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
