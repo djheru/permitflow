@@ -26,7 +26,7 @@ export class BackendStack extends cdk.Stack {
     const backendPath = path.join(__dirname, '..', '..', '..', 'backend');
 
     // DynamoDB Table
-    const progressTable = new dynamodb.Table(this, 'LoanProgressTable', {
+    const progressTable = new dynamodb.Table(this, 'PermitProgressTable', {
       tableName: `${props.serviceName}-${props.stage}-progress`,
       partitionKey: { name: 'application_id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -47,16 +47,16 @@ export class BackendStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    const fraudLogGroup = new logs.LogGroup(this, 'FraudLogGroup', {
-      logGroupName: `/aws/lambda/${props.serviceName}-${props.stage}-fraud-check`,
+    const fraudLogGroup = new logs.LogGroup(this, 'InspectionLogGroup', {
+      logGroupName: `/aws/lambda/${props.serviceName}-${props.stage}-site-inspection`,
       retention: logs.RetentionDays.ONE_WEEK,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    // Loan Workflow Function (Durable)
-    const workflowFunction = new NodejsFunction(this, 'LoanWorkflowFunction', {
+    // Permit Workflow Function (Durable)
+    const workflowFunction = new NodejsFunction(this, 'PermitWorkflowFunction', {
       functionName: `${props.serviceName}-${props.stage}-workflow`,
-      entry: path.join(backendPath, 'src', 'loan-workflow', 'handler.ts'),
+      entry: path.join(backendPath, 'src', 'permit-workflow', 'handler.ts'),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
       architecture: lambda.Architecture.ARM_64,
@@ -70,7 +70,7 @@ export class BackendStack extends cdk.Stack {
       environment: {
         PROGRESS_TABLE_NAME: progressTable.tableName,
         LOG_LEVEL: isProd ? 'INFO' : 'DEBUG',
-        POWERTOOLS_SERVICE_NAME: 'loan-workflow',
+        POWERTOOLS_SERVICE_NAME: 'permit-workflow',
       },
       bundling: {
         minify: true,
@@ -92,10 +92,10 @@ export class BackendStack extends cdk.Stack {
       version: workflowVersion,
     });
 
-    // Fraud Check Function
-    const fraudCheckFunction = new NodejsFunction(this, 'FraudCheckFunction', {
-      functionName: `${props.serviceName}-${props.stage}-fraud-check`,
-      entry: path.join(backendPath, 'src', 'fraud-check', 'handler.ts'),
+    // Site Inspection Function
+    const fraudCheckFunction = new NodejsFunction(this, 'SiteInspectionFunction', {
+      functionName: `${props.serviceName}-${props.stage}-site-inspection`,
+      entry: path.join(backendPath, 'src', 'site-inspection', 'handler.ts'),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
       architecture: lambda.Architecture.ARM_64,
@@ -103,9 +103,9 @@ export class BackendStack extends cdk.Stack {
       memorySize: 512,
       logGroup: fraudLogGroup,
       environment: {
-        LOAN_FUNCTION_NAME: workflowAlias.functionArn,
+        WORKFLOW_FUNCTION_NAME: workflowAlias.functionArn,
         LOG_LEVEL: isProd ? 'INFO' : 'DEBUG',
-        POWERTOOLS_SERVICE_NAME: 'fraud-check',
+        POWERTOOLS_SERVICE_NAME: 'site-inspection',
       },
       bundling: { minify: true, sourceMap: true },
     });
@@ -126,7 +126,7 @@ export class BackendStack extends cdk.Stack {
 
     // Update workflow with fraud check function name
     workflowFunction.addEnvironment(
-      'FRAUD_CHECK_FUNCTION_NAME',
+      'SITE_INSPECTION_FUNCTION_NAME',
       fraudCheckFunction.functionName
     );
 
@@ -135,7 +135,7 @@ export class BackendStack extends cdk.Stack {
     fraudCheckFunction.grantInvoke(workflowFunction);
 
     // API Function
-    const apiFunction = new NodejsFunction(this, 'LoanApiFunction', {
+    const apiFunction = new NodejsFunction(this, 'PermitApiFunction', {
       functionName: `${props.serviceName}-${props.stage}-api`,
       entry: path.join(backendPath, 'src', 'api', 'handler.ts'),
       handler: 'handler',
@@ -146,10 +146,10 @@ export class BackendStack extends cdk.Stack {
       logGroup: apiLogGroup,
       environment: {
         PROGRESS_TABLE_NAME: progressTable.tableName,
-        LOAN_FUNCTION_NAME: workflowAlias.functionArn,
+        WORKFLOW_FUNCTION_NAME: workflowAlias.functionArn,
         LOG_LEVEL: isProd ? 'INFO' : 'DEBUG',
-        POWERTOOLS_SERVICE_NAME: 'loan-api',
-        POWERTOOLS_METRICS_NAMESPACE: 'LoanApproval',
+        POWERTOOLS_SERVICE_NAME: 'permit-api',
+        POWERTOOLS_METRICS_NAMESPACE: 'PermitFlow',
       },
       bundling: { minify: true, sourceMap: true },
     });
@@ -171,7 +171,7 @@ export class BackendStack extends cdk.Stack {
     );
 
     // HTTP API
-    const httpApi = new apigatewayv2.HttpApi(this, 'LoanApi', {
+    const httpApi = new apigatewayv2.HttpApi(this, 'PermitApi', {
       apiName: `${props.serviceName}-${props.stage}`,
       corsPreflight: {
         allowOrigins: props.corsAllowedOrigins,
