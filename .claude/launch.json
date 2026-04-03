@@ -4,8 +4,8 @@
     {
       "name": "frontend",
       "runtimeExecutable": "/bin/bash",
-      "runtimeArgs": ["-c", "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && npm -w frontend run dev -- --port 5199 --strictPort"],
-      "port": 5199
+      "runtimeArgs": ["-c", "export NVM_DIR=\"$HOME/.nvm\" && . \"$NVM_DIR/nvm.sh\" && npm -w frontend run dev -- --port 5200 --strictPort"],
+      "port": 5200
     }
   ]
 }
