@@ -1,1 +1,6 @@
-{}
+{
+  "hosted-zone:account=190423078218:domainName=permitflow.cypherchat.io:region=us-east-1": {
+    "Id": "/hostedzone/Z014149313IV8RFTG41IM",
+    "Name": "permitflow.cypherchat.io."
+  }
+}
