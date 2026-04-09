@@ -1,12 +1,11 @@
 import * as cdk from "aws-cdk-lib";
-import * as chatbot from "aws-cdk-lib/aws-chatbot";
 import * as codebuild from "aws-cdk-lib/aws-codebuild";
 import * as codepipeline from "aws-cdk-lib/aws-codepipeline";
 import * as codepipeline_actions from "aws-cdk-lib/aws-codepipeline-actions";
 import * as notifications from "aws-cdk-lib/aws-codestarnotifications";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import * as sns from "aws-cdk-lib/aws-sns";
+import type * as sns from "aws-cdk-lib/aws-sns";
 import type { Construct } from "constructs";
 
 interface FrontendPipelineStackProps extends cdk.StackProps {
@@ -19,8 +18,13 @@ interface FrontendPipelineStackProps extends cdk.StackProps {
   readonly githubOwner: string;
   readonly githubRepo: string;
   readonly githubBranch: string;
-  readonly slackWorkspaceId?: string;
-  readonly slackChannelId?: string;
+  /**
+   * Optional SNS topic for pipeline notifications. When provided, a
+   * NotificationRule is attached to the pipeline and publishes lifecycle
+   * events to this topic. The topic is expected to be owned by
+   * NotificationsStack and subscribed to a shared SlackChannelConfiguration.
+   */
+  readonly notificationTopic?: sns.ITopic;
 }
 
 export class FrontendPipelineStack extends cdk.Stack {
@@ -201,20 +205,9 @@ export class FrontendPipelineStack extends cdk.Stack {
       ],
     });
 
-    // Slack notifications (optional)
-    if (props.slackWorkspaceId && props.slackChannelId) {
-      const topic = new sns.Topic(this, "PipelineNotifications", {
-        topicName: `${props.serviceName}-frontend-pipeline-notifications`,
-      });
-
-      new chatbot.SlackChannelConfiguration(this, "SlackChannel", {
-        slackChannelConfigurationName: `${props.serviceName}-frontend-pipeline`,
-        slackWorkspaceId: props.slackWorkspaceId,
-        slackChannelId: props.slackChannelId,
-        notificationTopics: [topic],
-        loggingLevel: chatbot.LoggingLevel.INFO,
-      });
-
+    // Pipeline notifications (optional) — topic is owned by NotificationsStack
+    // and subscribed to a shared SlackChannelConfiguration.
+    if (props.notificationTopic) {
       new notifications.NotificationRule(this, "NotificationRule", {
         source: pipeline,
         events: [
@@ -222,7 +215,7 @@ export class FrontendPipelineStack extends cdk.Stack {
           "codepipeline-pipeline-pipeline-execution-succeeded",
           "codepipeline-pipeline-manual-approval-needed",
         ],
-        targets: [topic],
+        targets: [props.notificationTopic],
       });
     }
   }

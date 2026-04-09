@@ -1,8 +1,7 @@
 import * as cdk from "aws-cdk-lib";
-import * as chatbot from "aws-cdk-lib/aws-chatbot";
 import { PipelineType } from "aws-cdk-lib/aws-codepipeline";
 import * as notifications from "aws-cdk-lib/aws-codestarnotifications";
-import * as sns from "aws-cdk-lib/aws-sns";
+import type * as sns from "aws-cdk-lib/aws-sns";
 import * as pipelines from "aws-cdk-lib/pipelines";
 import type { Construct } from "constructs";
 import { BackendStage } from "./backend/backend-stage";
@@ -14,8 +13,13 @@ interface BackendPipelineStackProps extends cdk.StackProps {
   readonly githubOwner: string;
   readonly githubRepo: string;
   readonly githubBranch: string;
-  readonly slackWorkspaceId?: string;
-  readonly slackChannelId?: string;
+  /**
+   * Optional SNS topic for pipeline notifications. When provided, a
+   * NotificationRule is attached to the pipeline and publishes lifecycle
+   * events to this topic. The topic is expected to be owned by
+   * NotificationsStack and subscribed to a shared SlackChannelConfiguration.
+   */
+  readonly notificationTopic?: sns.ITopic;
 }
 
 export class BackendPipelineStack extends cdk.Stack {
@@ -66,20 +70,12 @@ export class BackendPipelineStack extends cdk.Stack {
       },
     );
 
-    // Slack notifications (optional)
-    if (props.slackWorkspaceId && props.slackChannelId) {
-      const topic = new sns.Topic(this, "PipelineNotifications", {
-        topicName: `${props.serviceName}-backend-pipeline-notifications`,
-      });
-
-      new chatbot.SlackChannelConfiguration(this, "SlackChannel", {
-        slackChannelConfigurationName: `${props.serviceName}-backend-pipeline`,
-        slackWorkspaceId: props.slackWorkspaceId,
-        slackChannelId: props.slackChannelId,
-        notificationTopics: [topic],
-        loggingLevel: chatbot.LoggingLevel.INFO,
-      });
-
+    // Pipeline notifications (optional) — topic is owned by NotificationsStack
+    // and subscribed to a shared SlackChannelConfiguration. We must call
+    // buildPipeline() explicitly because CDK Pipelines builds its underlying
+    // codepipeline.Pipeline lazily, and NotificationRule needs the concrete
+    // pipeline resource as its source.
+    if (props.notificationTopic) {
       pipeline.buildPipeline();
 
       new notifications.NotificationRule(this, "NotificationRule", {
@@ -89,7 +85,7 @@ export class BackendPipelineStack extends cdk.Stack {
           "codepipeline-pipeline-pipeline-execution-succeeded",
           "codepipeline-pipeline-manual-approval-needed",
         ],
-        targets: [topic],
+        targets: [props.notificationTopic],
       });
     }
   }
