@@ -13,3 +13,4 @@ cdk.out/
 coverage/
 .cdk.staging/
 .superpowers/
+.DS_Store
