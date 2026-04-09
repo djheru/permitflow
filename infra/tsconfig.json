@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": ".",
-    "paths": {}
+    "paths": {},
+    "types": ["node"]
   },
   "include": ["bin/**/*", "lib/**/*", "src/**/*"],
   "exclude": ["node_modules", "dist", "cdk.out"]

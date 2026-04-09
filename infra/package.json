@@ -14,8 +14,8 @@
     "dotenv": "^16.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "typescript": "^5.0.0",
-    "aws-cdk": "^2.237.1"
+    "@types/node": "^22.19.17",
+    "aws-cdk": "^2.237.1",
+    "typescript": "^5.0.0"
   }
 }

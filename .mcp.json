@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "aws-mcp": {
+      "command": "uvx",
+      "args": [
+        "mcp-proxy-for-aws@latest",
+        "https://aws-mcp.us-east-1.api.aws/mcp",
+        "--metadata",
+        "AWS_REGION=us-east-1"
+      ]
+    },
+    "tailwindplus": {
+      "command": "uvx",
+      "args": [
+        "git+https://github.com/richardkmichael/mcp-tailwindplus@latest",
+        "--tailwindplus-data",
+        "/Users/pdamra/Workspace/_mcp/tailwindplus-downloader/tailwindplus-components-2026-01-10-182515.json"
+      ]
+    }
+  }
+}
