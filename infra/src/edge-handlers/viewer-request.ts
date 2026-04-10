@@ -1,9 +1,5 @@
 import type { CloudFrontRequestEvent, CloudFrontRequestResult } from 'aws-lambda';
 
-// These are injected at bundle time via CDK NodejsFunction `define` option
-declare const BLUE_BUCKET_DOMAIN: string;
-declare const GREEN_BUCKET_DOMAIN: string;
-
 const BLUE_GREEN_RATIO = 0.8;
 const COOKIE_NAME = 'x-blue-green-context';
 const HEADER_NAME = 'x-blue-green-context';
@@ -95,7 +91,3 @@ export const handler = async (
 
   return request;
 };
-
-// Suppress unused variable warnings for bundle-time injected constants
-void (BLUE_BUCKET_DOMAIN as unknown);
-void (GREEN_BUCKET_DOMAIN as unknown);

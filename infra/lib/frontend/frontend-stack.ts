@@ -57,13 +57,7 @@ export class FrontendStack extends cdk.Stack {
       architecture: lambda.Architecture.X86_64, // Lambda@Edge requires x86_64
       memorySize: 128,
       timeout: cdk.Duration.seconds(5),
-      bundling: {
-        minify: true,
-        define: {
-          BLUE_BUCKET_DOMAIN: JSON.stringify(blueBucket.bucketRegionalDomainName),
-          GREEN_BUCKET_DOMAIN: JSON.stringify(greenBucket.bucketRegionalDomainName),
-        },
-      },
+      bundling: { minify: true },
     });
 
     const originRequestFn = new NodejsFunction(this, 'OriginRequestFn', {
@@ -73,13 +67,7 @@ export class FrontendStack extends cdk.Stack {
       architecture: lambda.Architecture.X86_64,
       memorySize: 128,
       timeout: cdk.Duration.seconds(5),
-      bundling: {
-        minify: true,
-        define: {
-          BLUE_BUCKET_DOMAIN: JSON.stringify(blueBucket.bucketRegionalDomainName),
-          GREEN_BUCKET_DOMAIN: JSON.stringify(greenBucket.bucketRegionalDomainName),
-        },
-      },
+      bundling: { minify: true },
     });
 
     // ACM Certificate
