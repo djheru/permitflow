@@ -48,6 +48,8 @@ new BackendPipelineStack(app, `${serviceName}-backend-pipeline`, {
   githubRepo: process.env.GITHUB_REPO ?? "permitflow",
   githubBranch: process.env.GITHUB_BRANCH ?? "main",
   notificationTopic: notificationsStack?.backendPipelineTopic,
+  slackWorkspaceId,
+  slackChannelId,
 });
 
 const frontendStack = new FrontendStack(app, `${serviceName}-frontend`, {

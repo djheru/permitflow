@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import * as codebuild from "aws-cdk-lib/aws-codebuild";
 import { PipelineType } from "aws-cdk-lib/aws-codepipeline";
 import * as notifications from "aws-cdk-lib/aws-codestarnotifications";
 import type * as sns from "aws-cdk-lib/aws-sns";
@@ -20,11 +21,32 @@ interface BackendPipelineStackProps extends cdk.StackProps {
    * NotificationsStack and subscribed to a shared SlackChannelConfiguration.
    */
   readonly notificationTopic?: sns.ITopic;
+  /**
+   * Slack workspace/channel IDs, forwarded to the synth CodeBuild environment
+   * so that self-mutation re-synthesizes with notification wiring intact.
+   * These are NOT used to create Slack resources — that's NotificationsStack's
+   * job — they're purely for synth environment parity.
+   */
+  readonly slackWorkspaceId?: string;
+  readonly slackChannelId?: string;
 }
 
 export class BackendPipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: BackendPipelineStackProps) {
     super(scope, id, props);
+
+    const synthEnvironment: Record<string, string> = {
+      CODESTAR_CONNECTION_ARN: props.codestarConnectionArn,
+      GITHUB_OWNER: props.githubOwner,
+      GITHUB_REPO: props.githubRepo,
+      GITHUB_BRANCH: props.githubBranch,
+      SERVICE_NAME: props.serviceName,
+      DOMAIN_NAME: props.domainName,
+    };
+    if (props.slackWorkspaceId)
+      synthEnvironment.SLACK_WORKSPACE_ID = props.slackWorkspaceId;
+    if (props.slackChannelId)
+      synthEnvironment.SLACK_CHANNEL_ID = props.slackChannelId;
 
     const pipeline = new pipelines.CodePipeline(this, "Pipeline", {
       pipelineType: PipelineType.V2,
@@ -35,6 +57,7 @@ export class BackendPipelineStack extends cdk.Stack {
           props.githubBranch,
           { connectionArn: props.codestarConnectionArn },
         ),
+        env: synthEnvironment,
         commands: [
           "npm ci",
           "npm -w backend run build",
@@ -44,6 +67,15 @@ export class BackendPipelineStack extends cdk.Stack {
         ],
         primaryOutputDirectory: "infra/cdk.out",
       }),
+      codeBuildDefaults: {
+        partialBuildSpec: codebuild.BuildSpec.fromObject({
+          phases: {
+            install: {
+              "runtime-versions": { nodejs: "22" },
+            },
+          },
+        }),
+      },
       crossAccountKeys: false,
     });
 
