@@ -125,13 +125,13 @@ const App = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          project_type: form.projectType,
-          project_address: form.projectAddress,
-          project_description: form.projectDescription,
-          estimated_cost: parseFloat(form.estimatedCost),
-          applicant_name: form.applicantName,
-          applicant_phone: form.applicantPhone,
-          applicant_email: form.applicantEmail,
+          projectType: form.projectType,
+          projectAddress: form.projectAddress,
+          projectDescription: form.projectDescription,
+          estimatedCost: parseFloat(form.estimatedCost),
+          applicantName: form.applicantName,
+          applicantPhone: form.applicantPhone,
+          applicantEmail: form.applicantEmail,
         }),
       });
 
