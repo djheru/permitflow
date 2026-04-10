@@ -124,15 +124,27 @@ export class BackendStack extends cdk.Stack {
       })
     );
 
-    // Update workflow with fraud check function name
+    // Use hardcoded function name/ARN to avoid a circular dependency:
+    // WorkflowFunction → SiteInspection → WorkflowAlias → CurrentVersion → WorkflowFunction.
+    // CDK token references (fraudCheckFunction.functionName / .grantInvoke) would pull
+    // SiteInspection into CurrentVersion's dependency graph via the env var hash.
+    const siteInspectionFunctionName = `${props.serviceName}-${props.stage}-site-inspection`;
     workflowFunction.addEnvironment(
       'SITE_INSPECTION_FUNCTION_NAME',
-      fraudCheckFunction.functionName
+      siteInspectionFunctionName
     );
 
     // Grant workflow permissions
     progressTable.grantReadWriteData(workflowFunction);
-    fraudCheckFunction.grantInvoke(workflowFunction);
+    workflowFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['lambda:InvokeFunction'],
+        resources: [
+          `arn:aws:lambda:${this.region}:${this.account}:function:${siteInspectionFunctionName}`,
+          `arn:aws:lambda:${this.region}:${this.account}:function:${siteInspectionFunctionName}:*`,
+        ],
+      })
+    );
 
     // API Function
     const apiFunction = new NodejsFunction(this, 'PermitApiFunction', {
