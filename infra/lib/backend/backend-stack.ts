@@ -75,6 +75,9 @@ export class BackendStack extends cdk.Stack {
       bundling: {
         minify: true,
         sourceMap: true,
+        // Bundle the SDK — the Lambda runtime's built-in version doesn't
+        // include durable execution commands (SendDurableExecutionCallback*).
+        externalModules: [],
       },
     });
 
@@ -107,7 +110,7 @@ export class BackendStack extends cdk.Stack {
         LOG_LEVEL: isProd ? 'INFO' : 'DEBUG',
         POWERTOOLS_SERVICE_NAME: 'site-inspection',
       },
-      bundling: { minify: true, sourceMap: true },
+      bundling: { minify: true, sourceMap: true, externalModules: [] },
     });
 
     // Grant fraud check callback permissions
@@ -163,7 +166,7 @@ export class BackendStack extends cdk.Stack {
         POWERTOOLS_SERVICE_NAME: 'permit-api',
         POWERTOOLS_METRICS_NAMESPACE: 'PermitFlow',
       },
-      bundling: { minify: true, sourceMap: true },
+      bundling: { minify: true, sourceMap: true, externalModules: [] },
     });
 
     // Grant API permissions
